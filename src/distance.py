@@ -16,7 +16,9 @@ CHAINS_PER_MILE = 0.0125
 KM_PER_MILE = 1.6093
 
 EARTH_RADIUS = 6378137     # earth radius in meters
-AVIATION_DISTANCE_UPLIFT = 0.09
+GCD_UPLIFT = 0.08 # this is an uplift to account for non-optimal routing and stacking
+AVIATION_ALTITUDE_UPLIFT = 0.9 # this is the 2013 figure
+
 
 def air_distance(origin, destination, units='km'):
     ''' Uses great circle distance and an uplift factor of 9% following
@@ -33,7 +35,7 @@ def air_distance(origin, destination, units='km'):
     else:
         raise Exception('%s is not a valid unit system. Use "km" or "miles"' % units)
 
-    return dist * (1 + AVIATION_DISTANCE_UPLIFT)
+    return dist * (1 + GCD_UPLIFT)
 
 def road_distance(origin, destination, units='km'):
     ''' Uses the Google Directions API '''
@@ -78,6 +80,9 @@ def rail_distance(origin, destination, units='km'):
         raise Exception('%s is not a valid unit system. Use "km" or "miles"' % units)
     
     return dist
+
+def sea_distance(origin, destination, units='km'):
+    raise Exception("sea_distance is not yet implemented")
 
 def great_circle_distance(latlng_a, latlng_b):
     ''' From Gist https://gist.github.com/gabesmed/1826175 '''
