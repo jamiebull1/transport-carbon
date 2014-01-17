@@ -12,12 +12,14 @@ from pygeocoder import Geocoder
 import stations
 from g_directions import GoogleDirections
 
+''' Distance conversion constants '''
 CHAINS_PER_MILE = 0.0125
 KM_PER_MILE = 1.6093
-
-EARTH_RADIUS = 6378137     # earth radius in meters
-GCD_UPLIFT = 0.08 # this is an uplift to account for non-optimal routing and stacking
-AVIATION_ALTITUDE_UPLIFT = 0.9 # this is the 2013 figure
+EARTH_RADIUS = 6378137 # earth radius in meters
+''' GCD_UPLIFT (Great Circle Distance) is an uplift to account for
+    non-optimal routing and stacking (now included in GHG factors
+    so set to zero) '''
+GCD_UPLIFT = 0.00
 
 
 def air_distance(origin, destination, units='km'):
