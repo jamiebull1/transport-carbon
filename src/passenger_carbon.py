@@ -4,13 +4,14 @@ Created on 15 Jan 2014
 @author: Jamie
 '''
 import sqlite3 as lite
+from geopy import geocoders
 
 import travel_distance
 
 
 MAX_SHORT_HAUL_KM = 3700
 
-class PassengerTable:
+class FreightTable:
     @property
     def columns(self):
         with lite.connect("defra_carbon.db") as con:
@@ -37,9 +38,8 @@ class PassengerTable:
 
 def air(origin, destination, ghg_units="kgCO2e", travel_class="Average", radiative_forcing=True):
     flights = BusinessAir()
-    activity = "BusinessAir"
     haul = flights.get_haul(origin, destination)
-    return flights.get_factor(activity, ghg_units, haul, travel_class, radiative_forcing)
+    return flights.get_factor(ghg_units, haul, travel_class, radiative_forcing)
 
 def sea(ghg_units="kgCO2e", passenger_type="Average"):
     ferries = BusinessSea()
@@ -65,7 +65,7 @@ def car(ghg_units="kgCO2e", select_by="Size",
     else:
         raise Exception("%s is not a valid criterion for car selection" % select_by)
 
-class BusinessRail(PassengerTable):
+class BusinessRail(FreightTable):
     
     def __init__(self):
         self.table_name = "BusinessRail"
@@ -83,7 +83,7 @@ class BusinessRail(PassengerTable):
             else:
                 raise Exception("%s is not a valid rail type" % (rail_type))
 
-class BusinessSea(PassengerTable):
+class BusinessSea(FreightTable):
     
     def __init__(self):
         self.table_name = "BusinessSea"
@@ -101,7 +101,7 @@ class BusinessSea(PassengerTable):
             else:
                 raise Exception("%s is not a valid ferry type" % (passenger_type))
 
-class BusinessAir(PassengerTable):
+class BusinessAir(FreightTable):
     
     def __init__(self):
         self.table_name = "BusinessAir"
@@ -110,7 +110,7 @@ class BusinessAir(PassengerTable):
         con = lite.connect("defra_carbon.db")
         with con:
             cur = con.cursor()    
-            cur.execute("SELECT %s FROM %s WHERE Haul=:Haul AND PassengerClass=:PassengerClass" % (ghg_units, self.table_name),
+            cur.execute("SELECT %s FROM %s WHERE Haul=:Haul AND PassengerClass=:PassengerClass AND IncludeRF" % (ghg_units, self.table_name),
                         {"Haul": haul,
                          "PassengerClass": travel_class,
                          "IncludeRF": radiative_forcing})
@@ -129,7 +129,7 @@ class BusinessAir(PassengerTable):
         else:
             return "LongHaul"
 
-class BusinessCarBySize(PassengerTable):
+class BusinessCarBySize(FreightTable):
     
     def __init__(self):
         self.table_name = "BusinessCarsBySize"
@@ -149,7 +149,7 @@ class BusinessCarBySize(PassengerTable):
             else:
                 raise Exception("%s %s %s is not a valid car type" % (size, fuel, unit))
         
-class BusinessCarByMarketSegment(PassengerTable):
+class BusinessCarByMarketSegment(FreightTable):
     
     def __init__(self):
         self.table_name = "BusinessCarsByMarketSegment"
@@ -170,8 +170,10 @@ class BusinessCarByMarketSegment(PassengerTable):
                 raise Exception("%s %s %s is not a valid car type" % (market_segment, fuel, unit))
         
 def get_country(location):
-    # import Geocoder, etc
-    raise Exception("get_country() not yet implemented")
+    g = geocoders.GoogleV3()
+    place, _geoid = g.geocode(location)
+    country = place.split(',')[-1]
+    return country
         
          
 def main():
