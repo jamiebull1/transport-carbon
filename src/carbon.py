@@ -13,6 +13,56 @@ import distance
 
 MAX_SHORT_HAUL_KM = 3700
 
+''' Business travel functions '''
+def air(origin=None, destination=None, ghg_units="kgCO2e", haul=None,
+        passenger_class="Average", radiative_forcing=True):
+    flights = BusinessAir()
+    if not haul:
+        if not origin and not destination:
+            raise Exception("Cannot determine haul of flight. Either specify haul, or origin and destination.")
+        else:
+            haul = get_haul(origin, destination)
+    criteria = {"GHGUnits": ghg_units, "Haul": haul,
+                "PassengerClass": passenger_class, "IncludeRF": radiative_forcing}
+    return flights.get_factor(criteria)
+
+def bus(ghg_units="kgCO2e", bus_type="AverageLocalBus"):
+    bus = BusinessBus()
+    criteria = {"GHGUnits": ghg_units, "BusType": bus_type}
+    return bus.get_factor(criteria)
+
+def car(ghg_units="kgCO2e", select_by="Size",
+               size="Average", market_segment="UpperMedium",
+               fuel="Unknown", unit='km'):
+    if select_by == "Size":
+        cars = BusinessCarBySize()
+        criteria = {"GHGUnits": ghg_units, "Size": size, "Unit": unit}
+        return cars.get_factor(criteria)
+    elif select_by == "MarketSegment":
+        cars = BusinessCarByMarketSegment()
+        criteria = {"GHGUnits": ghg_units, "MarketSegment": market_segment, "Unit": unit}
+        return cars.get_factor(criteria)
+    else:
+        raise Exception("%s is not a valid criterion for car selection" % select_by)
+
+def motorbike(ghg_units="kgCO2e", size="Average"):
+    motorbikes = BusinessMotorbike()
+    criteria = {"GHGUnits": ghg_units, "Size": size}
+    return motorbikes.get_factor(criteria)
+
+def rail(ghg_units="kgCO2e", rail_type="NationalRail"):
+    trains = BusinessRail()
+    criteria = {"GHGUnits": "kgCO2e", "RailType": rail_type}
+    return trains.get_factor(criteria)
+
+def sea(ghg_units="kgCO2e", passenger_type="Average"):
+    ferries = BusinessSea()
+    return ferries.get_factor({"GHGUnits": ghg_units, "PassengerType": passenger_type})
+
+def taxi(ghg_units="kgCO2e", taxi_type="RegularTaxi", units="PassengerKm"):
+    taxi = BusinessTaxi()
+    return taxi.get_factor({"GHGUnits": ghg_units, "TaxiType": taxi_type})
+
 ''' Freight functions '''
 def air_freight(origin, destination, ghg_units="kgCO2e", haul=None, radiative_forcing=True, ):
     flights = FreightAir()
@@ -116,8 +166,46 @@ def get_min_capacity(ship_type, activity, capacity):
         min_capacity = capacities[i-1]
     return min_capacity
 
+def get_country(location):
+    g = geocoders.GoogleV3()
+    place, _geoid = g.geocode(location)
+    country = place.split(',')[-1]
+    return country
+        
+def get_haul(origin, destination):
+    if get_country(origin) == "UK" and get_country(destination) == "UK":
+        return "Domestic"
+    elif distance.air_distance(origin, destination, 'km') < MAX_SHORT_HAUL_KM:
+        return "ShortHaul"
+    else:
+        return "LongHaul"
+
 class ActivityTable:
     
+    @property
+    def columns(self):
+        with lite.connect("defra_carbon.db") as con:
+            cur = con.cursor()    
+            cur.execute("SELECT * FROM %s" % self.table_name)
+            names = list(map(lambda x: x[0], cur.description))
+            return names
+
+    @property
+    def ghg_units(self):
+        with lite.connect("defra_carbon.db") as con:
+            cur = con.cursor()    
+            cur.execute("SELECT * FROM %s" % self.table_name)
+            names = list(map(lambda x: x[0], cur.description))
+            return [nm for nm in names if 'kg' in nm]
+
+    @property
+    def options(self):
+        with lite.connect("defra_carbon.db") as con:
+            cur = con.cursor()    
+            cur.execute("SELECT * FROM %s" % self.table_name)
+            names = list(map(lambda x: x[0], cur.description))
+            return [nm for nm in names if 'kg' not in nm]
+
     def get_factor(self, criteria):
         query, error_message = self.select_from_criteria(criteria)
         with lite.connect("defra_carbon.db") as con:
@@ -158,30 +246,6 @@ class ActivityTable:
         error_message = 'Error selecting from database'
         return query, error_message
 
-    @property
-    def columns(self):
-        with lite.connect("defra_carbon.db") as con:
-            cur = con.cursor()    
-            cur.execute("SELECT * FROM %s" % self.table_name)
-            names = list(map(lambda x: x[0], cur.description))
-            return names
-
-    @property
-    def ghg_units(self):
-        with lite.connect("defra_carbon.db") as con:
-            cur = con.cursor()    
-            cur.execute("SELECT * FROM %s" % self.table_name)
-            names = list(map(lambda x: x[0], cur.description))
-            return [nm for nm in names if 'kg' in nm]
-
-    @property
-    def options(self):
-        with lite.connect("defra_carbon.db") as con:
-            cur = con.cursor()    
-            cur.execute("SELECT * FROM %s" % self.table_name)
-            names = list(map(lambda x: x[0], cur.description))
-            return [nm for nm in names if 'kg' not in nm]
-
 class FreightAir(ActivityTable):
     
     def __init__(self):
@@ -211,56 +275,6 @@ class FreightVan(ActivityTable):
     
     def __init__(self):
         self.table_name = "FreightVan"
-
-''' Business travel functions '''
-def air(origin=None, destination=None, ghg_units="kgCO2e", haul=None,
-        passenger_class="Average", radiative_forcing=True):
-    flights = BusinessAir()
-    if not haul:
-        if not origin and not destination:
-            raise Exception("Cannot determine haul of flight. Either specify haul, or origin and destination.")
-        else:
-            haul = get_haul(origin, destination)
-    criteria = {"GHGUnits": ghg_units, "Haul": haul,
-                "PassengerClass": passenger_class, "IncludeRF": radiative_forcing}
-    return flights.get_factor(criteria)
-
-def bus(ghg_units="kgCO2e", bus_type="AverageLocalBus"):
-    bus = BusinessBus()
-    criteria = {"GHGUnits": ghg_units, "BusType": bus_type}
-    return bus.get_factor(criteria)
-
-def car(ghg_units="kgCO2e", select_by="Size",
-               size="Average", market_segment="UpperMedium",
-               fuel="Unknown", unit='km'):
-    if select_by == "Size":
-        cars = BusinessCarBySize()
-        criteria = {"GHGUnits": ghg_units, "Size": size, "Unit": unit}
-        return cars.get_factor(criteria)
-    elif select_by == "MarketSegment":
-        cars = BusinessCarByMarketSegment()
-        criteria = {"GHGUnits": ghg_units, "MarketSegment": market_segment, "Unit": unit}
-        return cars.get_factor(criteria)
-    else:
-        raise Exception("%s is not a valid criterion for car selection" % select_by)
-
-def motorbike(ghg_units="kgCO2e", size="Average"):
-    motorbikes = BusinessMotorbike()
-    criteria = {"GHGUnits": ghg_units, "Size": size}
-    return motorbikes.get_factor(criteria)
-
-def rail(ghg_units="kgCO2e", rail_type="NationalRail"):
-    trains = BusinessRail()
-    criteria = {"GHGUnits": "kgCO2e", "RailType": rail_type}
-    return trains.get_factor(criteria)
-
-def sea(ghg_units="kgCO2e", passenger_type="Average"):
-    ferries = BusinessSea()
-    return ferries.get_factor({"GHGUnits": ghg_units, "PassengerType": passenger_type})
-
-def taxi(ghg_units="kgCO2e", taxi_type="RegularTaxi", units="PassengerKm"):
-    taxi = BusinessTaxi()
-    return taxi.get_factor({"GHGUnits": ghg_units, "TaxiType": taxi_type})
 
 class BusinessRail(ActivityTable):
     
@@ -309,20 +323,6 @@ class BusinessCarByMarketSegment(ActivityTable):
     
     def __init__(self):
         self.table_name = "BusinessCarsByMarketSegment"
-
-def get_country(location):
-    g = geocoders.GoogleV3()
-    place, _geoid = g.geocode(location)
-    country = place.split(',')[-1]
-    return country
-        
-def get_haul(origin, destination):
-    if get_country(origin) == "UK" and get_country(destination) == "UK":
-        return "Domestic"
-    elif distance.air_distance(origin, destination, 'km') < MAX_SHORT_HAUL_KM:
-        return "ShortHaul"
-    else:
-        return "LongHaul"
 
          
 def main():
