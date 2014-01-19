@@ -37,7 +37,7 @@ For all functions, `ghg_units` defaults to kgCO2e. Well to tank (upstream) emiss
 
 Requires either origin and destination, or haul to be passed. If unspecified, `ghg_units` defaults to "kgCO2e" and radiative_forcing defaults to `True`.
 
-`carbon.bus([ghg_units[, bus_type]])`
+`carbon.bus([ghg_units[, bus_type]])`  
 
 If unspecified, `bus_type` defaults to "AverageLocalBus".
 
