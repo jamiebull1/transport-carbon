@@ -19,7 +19,7 @@ EARTH_RADIUS = 6378137 # earth radius in meters
 ''' GCD_UPLIFT (Great Circle Distance) is an uplift to account for
     non-optimal routing and stacking (now included in GHG factors
     so set to zero) '''
-GCD_UPLIFT = 0.00
+GCD_UPLIFT = 0.00 # This may be different in years before 2013
 
 
 def air_distance(origin, destination, units='km'):
@@ -84,7 +84,7 @@ def rail_distance(origin, destination, units='km'):
     return dist
 
 def sea_distance(origin, destination, units='km'):
-    raise Exception("sea_distance is not yet implemented")
+    raise NotImplementedError("sea_distance is not yet implemented")
 
 def great_circle_distance(latlng_a, latlng_b):
     ''' From Gist https://gist.github.com/gabesmed/1826175 '''
@@ -101,14 +101,8 @@ def great_circle_distance(latlng_a, latlng_b):
     
     return d    
 
-def tests():    
-    print '1', air_distance('london euston', 'leeds') # this works
-    print '2', air_distance('liverpool lime street', 'leeds')
-    print '3', road_distance('london euston', 'leeds') # this works
-    print '4', road_distance('liverpool lime street', 'leeds')
-    print '5', rail_distance('london euston', 'leeds') # this works
-    print '6', rail_distance('liverpool lime street', 'leeds') # this throws an error 
-
+def main():
+    pass
 
 if __name__ == "__main__":
-    tests()
+    main()
