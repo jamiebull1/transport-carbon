@@ -2,9 +2,7 @@
 
 This library is intended to provide an open source Python package for calculating the carbon footprint of transport (UK-focused to begin with).
 
-The carbon factors are based on the data provided by Defra in their [2013 Government GHG Conversion Factors for Company Reporting] now provided in a web service from Ricardo-AEA[1].
-
-[1] http://www.ukconversionfactorscarbonsmart.co.uk/
+The carbon factors are based on the data provided by Defra in their [2013 Government GHG Conversion Factors for Company Reporting](http://www.ukconversionfactorscarbonsmart.co.uk/) now provided in a web service from Ricardo-AEA.
 
 The distances are provided from a range of sources at present, some of which need more work, and some of which need replacing.
 
