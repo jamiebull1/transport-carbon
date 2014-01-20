@@ -132,7 +132,7 @@ def sea_tanker(ghg_units="kgCO2e", ship_type="ProductsTanker", capacity=None,
     return sea_tanker.get_factor(criteria)
 
 def van(ghg_units="kgCO2e", van_class="Average",
-        tonnage=None, fuel="Unknown", unit='km'):
+        tonnage=None, fuel="Unknown", unit="km"):
     if not tonnage is None:
         if tonnage < 1.305:
             van_class = "ClassOne"
