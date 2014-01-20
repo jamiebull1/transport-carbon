@@ -54,7 +54,7 @@ class Test(unittest.TestCase):
         self.assertIsInstance(factor, float)
         
     def testAirCarbonFactor(self):
-        factor =  carbon.BusinessAir().get_factor({"GHGUnits": "kgCO2e", "Haul": "Domestic",
+        factor =  carbon.BusinessFlights().get_factor({"GHGUnits": "kgCO2e", "Haul": "Domestic",
                                                    "PassengerClass": "Average", "IncludeRF": True})
         self.assertAlmostEqual(factor, 0.326615, 8)
 
@@ -80,7 +80,7 @@ class Test(unittest.TestCase):
         self.assertIsInstance(factor, float)
         
     def testFerryCarbonFactor(self):
-        factor =  carbon.BusinessSea().get_factor({"GHGUnits": "kgCO2e", "PassengerType": "Foot"})
+        factor =  carbon.BusinessFerries().get_factor({"GHGUnits": "kgCO2e", "PassengerType": "Foot"})
         self.assertAlmostEqual(factor, 0.01928, 8)
 
     def testFerryCarbonEndToEnd(self):
@@ -118,7 +118,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 0.144342857, 8)
 
     def testVanCarbonFactor(self):
-        factor = carbon.FreightVan().get_factor({"GHGUnits": "kgCO2e",
+        factor = carbon.FreightVans().get_factor({"GHGUnits": "kgCO2e",
                                                  "Fuel": "Diesel",
                                                  "VanClass": "ClassOne"})
         self.assertAlmostEqual(factor, 0.650217502, 8)
@@ -148,7 +148,7 @@ class Test(unittest.TestCase):
         
     def testAirFreightCarbonFactor(self):
         criteria = {"GHGUnits":"kgCO2e", "Haul": "Domestic", "IncludeRF": False}
-        factor = carbon.FreightAir().get_factor(criteria)
+        factor = carbon.FreightFlights().get_factor(criteria)
         self.assertAlmostEqual(factor, 4.136955, 8)
 
     def testRailFreightCarbonEndToEnd(self):

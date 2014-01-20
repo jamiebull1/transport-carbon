@@ -1,0 +1,2 @@
+Id,Year,Activity,RailType,Unit,kgCO2e,kgCO2,kgCH4,kgN2O,kgCO2eWTT
+1,2013,Rail,FreightTrain,TonneKm,0.02721,0.0271,0.00004,0.00007,0.0057

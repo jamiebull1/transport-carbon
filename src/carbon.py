@@ -4,8 +4,8 @@ Created on 15 Jan 2014
 @author: Jamie
 '''
 import bisect
-
 import sqlite3 as lite
+
 from geopy import geocoders
 
 import distance
@@ -16,7 +16,7 @@ MAX_SHORT_HAUL_KM = 3700
 ''' Business travel functions '''
 def air(origin=None, destination=None, ghg_units="kgCO2e", haul=None,
         passenger_class="Average", radiative_forcing=True):
-    flights = BusinessAir()
+    flights = BusinessFlights()
     if not haul:
         if not origin and not destination:
             raise Exception("Cannot determine haul of flight. Either specify haul, or origin and destination.")
@@ -56,7 +56,7 @@ def rail(ghg_units="kgCO2e", rail_type="NationalRail"):
     return trains.get_factor(criteria)
 
 def sea(ghg_units="kgCO2e", passenger_type="Average"):
-    ferries = BusinessSea()
+    ferries = BusinessFerries()
     return ferries.get_factor({"GHGUnits": ghg_units, "PassengerType": passenger_type})
 
 def taxi(ghg_units="kgCO2e", taxi_type="RegularTaxi", units="PassengerKm"):
@@ -65,7 +65,7 @@ def taxi(ghg_units="kgCO2e", taxi_type="RegularTaxi", units="PassengerKm"):
 
 ''' Freight functions '''
 def air_freight(origin, destination, ghg_units="kgCO2e", haul=None, radiative_forcing=True, ):
-    flights = FreightAir()
+    flights = FreightFlights()
     if origin and destination and haul:
         raise Exception("Specify either haul or origin and destination, not both.")
     if not haul:
@@ -142,7 +142,7 @@ def van(ghg_units="kgCO2e", van_class="Average",
             van_class = "ClassThree"
         else:
             raise Exception("Vans must weigh less than 3.5 tonnes")
-    van = FreightVan()
+    van = FreightVans()
     criteria = {"GHGUnits": ghg_units, "Fuel": fuel, "VanClass": van_class}
     return van.get_factor(criteria)
 
@@ -246,10 +246,10 @@ class ActivityTable:
         error_message = 'Error selecting from database'
         return query, error_message
 
-class FreightAir(ActivityTable):
+class FreightFlights(ActivityTable):
     
     def __init__(self):
-        self.table_name = "FreightAir"
+        self.table_name = "FreightFlights"
 
 class FreightCargoShip(ActivityTable):
     
@@ -271,10 +271,10 @@ class FreightSeaTanker(ActivityTable):
     def __init__(self):
         self.table_name = "FreightSeaTanker"
         
-class FreightVan(ActivityTable):
+class FreightVans(ActivityTable):
     
     def __init__(self):
-        self.table_name = "FreightVan"
+        self.table_name = "FreightVans"
 
 class BusinessRail(ActivityTable):
     
@@ -296,15 +296,15 @@ class BusinessMotorbike(ActivityTable):
     def __init__(self):
         self.table_name = "BusinessMotorbike"
         
-class BusinessSea(ActivityTable):
+class BusinessFerries(ActivityTable):
     
     def __init__(self):
-        self.table_name = "BusinessSea"
+        self.table_name = "BusinessFerries"
         
-class BusinessAir(ActivityTable):
+class BusinessFlights(ActivityTable):
     
     def __init__(self):
-        self.table_name = "BusinessAir"
+        self.table_name = "BusinessFlights"
 
     def get_haul(self, origin, destination):
         if get_country(origin) == "UK" and get_country(destination) == "UK":

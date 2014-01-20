@@ -1,0 +1,4 @@
+Id,Year,Activity,PassengerType,Unit,kgCO2e,kgCO2,kgCH4,kgN2O,kgCO2eWTT
+1,2013,Ferries,Foot,PassengerKm,0.01928,0.01912,0.00001,0.00015,0.00361
+2,2013,Ferries,Car,PassengerKm,0.13321,0.13216,0.00004,0.00101,0.02497
+3,2013,Ferries,Average,PassengerKm,0.11608,0.11516,0.00004,0.00088,0.02176
