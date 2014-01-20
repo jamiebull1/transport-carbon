@@ -3,9 +3,10 @@ Created on 16 Jan 2014
 
 @author: Jamie
 '''
+import sqlite3 as lite
+
 import pandas
 import pandas.io.sql as pd_lite
-import sqlite3 as lite
 
 ''' Create the stations database '''
 with lite.connect("./uk_stations.db") as con:

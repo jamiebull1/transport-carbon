@@ -11,9 +11,15 @@ The available functions are:
 
 `air_distance(origin, destination[, units])`
 
+This function is complete. It calculates the great circle distance between two points. The emissions factors already include an uplift to account for non-optimal routing and stacking at airports.
+
 `rail_distance(origin, destination[, units])`
 
-`road_distance(origin, destination[, units])`
+This function has a working prototype. It is quite successful when used on journeys that are on a single train line (as they should be), however in trying to calculate more complicated journeys it often fails to find a route.
+
+`road_distance(origin, destination[, mode[, units])`
+
+This function is based on the Google Directions API as implemented in the `g_directions` module. `mode` defaults to "driving" and `units` defaults to "km".
 
 `sea_distance(origin, destination[, units])`
 

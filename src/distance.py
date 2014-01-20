@@ -39,10 +39,11 @@ def air_distance(origin, destination, units='km'):
 
     return dist * (1 + GCD_UPLIFT)
 
-def road_distance(origin, destination, units='km'):
+def road_distance(origin, destination, mode='driving', units='km'):
     ''' Uses the Google Directions API '''
     gd = GoogleDirections()
-    dist = gd.query(origin, destination).distance
+    options = {'mode': mode}
+    dist = gd.query(origin, destination, options).distance
     if units == 'km':
         dist = dist / 1000.0
     elif units == 'miles':
