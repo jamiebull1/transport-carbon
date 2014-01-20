@@ -2,8 +2,11 @@
     stations.py written to extract and use data in uk_stations.db
 '''
 import sqlite3 as lite
+import os
 
 from geopy import geocoders, distance
+
+DIR = os.path.dirname(__file__)
 
 def closest(location):
     '''Finds the nearest station (by great circle dist) to
@@ -14,7 +17,7 @@ def closest(location):
     except TypeError:
         raise TypeError('Location not found')
 
-    with lite.connect("uk_stations.db") as con:
+    with lite.connect(os.path.join(DIR, "db/uk_stations.db")) as con:
         cur = con.cursor()
         cur.execute("SELECT Latitude, Longitude FROM Stations")
         latlngs = cur.fetchall()

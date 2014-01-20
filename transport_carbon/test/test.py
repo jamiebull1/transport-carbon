@@ -5,9 +5,7 @@ Created on 9 Jan 2014
 '''
 import unittest
 
-import distance
-import stations
-import carbon
+from transport_carbon import *
 
 class Test(unittest.TestCase):
 
@@ -46,10 +44,10 @@ class Test(unittest.TestCase):
                                msg="Air distance (miles) failed on London to Leeds")
     
     def testAirCarbonEndToEnd(self):
-        factor = carbon.air("London", "Glasgow", "kgCO2e",
+        factor = carbon.air_ghg("London", "Glasgow", "kgCO2e",
                                       passenger_class="Economy", radiative_forcing=True)
         self.assertIsInstance(factor, float)
-        factor = carbon.air("kgCO2e", haul="ShortHaul",
+        factor = carbon.air_ghg("kgCO2e", haul="ShortHaul",
                                       passenger_class="Economy", radiative_forcing=True)
         self.assertIsInstance(factor, float)
         
@@ -59,7 +57,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 0.326615, 8)
 
     def testBusCarbonEndToEnd(self):
-        factor = carbon.bus("kgCO2e", "Coach")
+        factor = carbon.bus_ghg("kgCO2e", "Coach")
         self.assertIsInstance(factor, float)
         
     def testBusCarbonFactor(self):
@@ -67,7 +65,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 0.02932, 8)
 
     def testCarCarbonEndToEnd(self):
-        factor =  carbon.car()
+        factor =  carbon.car_ghg()
         self.assertIsInstance(factor, float)
 
     def testCarByMarketSegmentCarbonFactor(self):
@@ -76,7 +74,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 0.17224, 8)
 
     def testCarByMarketSegmentCarbonEndToEnd(self):
-        factor = carbon.car(select_by="MarketSegment")
+        factor = carbon.car_ghg(select_by="MarketSegment")
         self.assertIsInstance(factor, float)
         
     def testFerryCarbonFactor(self):
@@ -84,7 +82,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 0.01928, 8)
 
     def testFerryCarbonEndToEnd(self):
-        factor = carbon.sea("kgCO2e", "Car")
+        factor = carbon.ferry_ghg("kgCO2e", "Car")
         self.assertEquals(factor, 0.13321)
 
     def testRailClosest(self):
@@ -94,7 +92,7 @@ class Test(unittest.TestCase):
         self.assertEquals(closest, 'Leamington Spa', "Closest stations fails on Napton")
 
     def testMotorbikeCarbonEndToEnd(self):
-        factor = carbon.motorbike(ghg_units="kgCO2e", size="Large")
+        factor = carbon.motorbike_ghg(ghg_units="kgCO2e", size="Large")
         self.assertIsInstance(factor, float)
         
     def testMotorbikeCarbonFactor(self):
@@ -102,7 +100,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 0.08774, 8)
 
     def testRailCarbonEndToEnd(self):
-        factor = carbon.rail({"GHGUnits": "kgCO2e", "RailType": "Tram"})
+        factor = carbon.rail_ghg({"GHGUnits": "kgCO2e", "RailType": "Tram"})
         self.assertIsInstance(factor, float)
         
     def testRailCarbonFactor(self):
@@ -110,7 +108,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 0.04904, 8)
 
     def testTaxiCarbonEndToEnd(self):
-        factor = carbon.taxi(ghg_units="kgCO2e", taxi_type="BlackCab")
+        factor = carbon.taxi_ghg(ghg_units="kgCO2e", taxi_type="BlackCab")
         self.assertIsInstance(factor, float)
         
     def testTaxiCarbonFactor(self):
@@ -124,9 +122,9 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 0.650217502, 8)
 
     def testVanCarbonEndToEnd(self):
-        factor = carbon.van("kgCO2e", fuel="Petrol", tonnage=1.7)
+        factor = carbon.van_ghg("kgCO2e", fuel="Petrol", tonnage=1.7)
         self.assertAlmostEqual(factor, 0.80545922, 8)
-        factor = carbon.van("kgCO2e")
+        factor = carbon.van_ghg("kgCO2e")
 
     def testHGVCarbonFactor(self):
         factor = carbon.FreightHGV().get_factor({"GHGUnits": "kgCO2e",
@@ -137,12 +135,12 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 0.174482, 8)
 
     def testHGVCarbonEndToEnd(self):
-        factor = carbon.hgv(ghg_units="kgCO2e", tonnage=25)
+        factor = carbon.hgv_ghg(ghg_units="kgCO2e", tonnage=25)
         self.assertAlmostEqual(factor, 0.90765, 8)
-        factor = carbon.hgv("kgCO2e")
+        factor = carbon.hgv_ghg("kgCO2e")
 
     def testAirFreightCarbonEndToEnd(self):
-        factor = carbon.air_freight(origin="London", destination="Glasgow",
+        factor = carbon.air_freight_ghg(origin="London", destination="Glasgow",
                                     ghg_units="kgCO2e", radiative_forcing=True)
         self.assertIsInstance(factor, float)
         
@@ -152,7 +150,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 4.136955, 8)
 
     def testRailFreightCarbonEndToEnd(self):
-        factor = carbon.rail(ghg_units="kgCO2e")
+        factor = carbon.rail_ghg(ghg_units="kgCO2e")
         self.assertIsInstance(factor, float)
         
     def testRailFreightCarbonFactor(self):
@@ -160,7 +158,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 0.02721, 8)
 
     def testSeaTankerFreightCarbonEndToEnd(self):
-        factor = carbon.sea_tanker(ghg_units="kgCO2e",
+        factor = carbon.sea_tanker_ghg(ghg_units="kgCO2e",
                                    ship_type="ChemicalTanker",
                                    capacity=40000)
         self.assertIsInstance(factor, float)
@@ -170,7 +168,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(factor, 0.00292, 8)
     
     def testCargoShipFreightCarbonEndToEnd(self):
-        factor = carbon.cargo_ship(ghg_units="kgCO2e", ship_type="BulkCarrier", capacity=40000)
+        factor = carbon.cargo_ship_ghg(ghg_units="kgCO2e", ship_type="BulkCarrier", capacity=40000)
         self.assertIsInstance(factor, float)
         
     def testCargoShipFreightCarbonFactor(self):

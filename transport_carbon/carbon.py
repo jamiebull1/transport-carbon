@@ -5,16 +5,17 @@ Created on 15 Jan 2014
 '''
 import bisect
 import sqlite3 as lite
+import os
 
 from geopy import geocoders
 
 import distance
 
-
+DIR = os.path.dirname(__file__)
 MAX_SHORT_HAUL_KM = 3700
 
 ''' Business travel functions '''
-def air(origin=None, destination=None, ghg_units="kgCO2e", haul=None,
+def air_ghg(origin=None, destination=None, ghg_units="kgCO2e", haul=None,
         passenger_class="Average", radiative_forcing=True):
     flights = BusinessFlights()
     if not haul:
@@ -26,12 +27,12 @@ def air(origin=None, destination=None, ghg_units="kgCO2e", haul=None,
                 "PassengerClass": passenger_class, "IncludeRF": radiative_forcing}
     return flights.get_factor(criteria)
 
-def bus(ghg_units="kgCO2e", bus_type="AverageLocalBus"):
-    bus = BusinessBus()
+def bus_ghg(ghg_units="kgCO2e", bus_type="AverageLocalBus"):
+    bus_ghg = BusinessBus()
     criteria = {"GHGUnits": ghg_units, "BusType": bus_type}
-    return bus.get_factor(criteria)
+    return bus_ghg.get_factor(criteria)
 
-def car(ghg_units="kgCO2e", select_by="Size",
+def car_ghg(ghg_units="kgCO2e", select_by="Size",
                size="Average", market_segment="UpperMedium",
                fuel="Unknown", unit='km'):
     if select_by == "Size":
@@ -43,28 +44,28 @@ def car(ghg_units="kgCO2e", select_by="Size",
         criteria = {"GHGUnits": ghg_units, "MarketSegment": market_segment, "Unit": unit}
         return cars.get_factor(criteria)
     else:
-        raise Exception("%s is not a valid criterion for car selection" % select_by)
+        raise Exception("%s is not a valid criterion for car_ghg selection" % select_by)
 
-def motorbike(ghg_units="kgCO2e", size="Average"):
+def motorbike_ghg(ghg_units="kgCO2e", size="Average", unit='km'):
     motorbikes = BusinessMotorbike()
-    criteria = {"GHGUnits": ghg_units, "Size": size}
+    criteria = {"GHGUnits": ghg_units, "Size": size, "Unit": unit}
     return motorbikes.get_factor(criteria)
 
-def rail(ghg_units="kgCO2e", rail_type="NationalRail"):
+def rail_ghg(ghg_units="kgCO2e", rail_type="NationalRail"):
     trains = BusinessRail()
     criteria = {"GHGUnits": "kgCO2e", "RailType": rail_type}
     return trains.get_factor(criteria)
 
-def sea(ghg_units="kgCO2e", passenger_type="Average"):
+def ferry_ghg(ghg_units="kgCO2e", passenger_type="Average"):
     ferries = BusinessFerries()
     return ferries.get_factor({"GHGUnits": ghg_units, "PassengerType": passenger_type})
 
-def taxi(ghg_units="kgCO2e", taxi_type="RegularTaxi", units="PassengerKm"):
-    taxi = BusinessTaxi()
-    return taxi.get_factor({"GHGUnits": ghg_units, "TaxiType": taxi_type})
+def taxi_ghg(ghg_units="kgCO2e", taxi_type="RegularTaxi", units="PassengerKm"):
+    taxi_ghg = BusinessTaxi()
+    return taxi_ghg.get_factor({"GHGUnits": ghg_units, "TaxiType": taxi_type})
 
 ''' Freight functions '''
-def air_freight(origin, destination, ghg_units="kgCO2e", haul=None, radiative_forcing=True, ):
+def air_freight_ghg(origin, destination, ghg_units="kgCO2e", haul=None, radiative_forcing=True, ):
     flights = FreightFlights()
     if origin and destination and haul:
         raise Exception("Specify either haul or origin and destination, not both.")
@@ -73,19 +74,19 @@ def air_freight(origin, destination, ghg_units="kgCO2e", haul=None, radiative_fo
     criteria = {"GHGUnits": ghg_units, "Haul": haul, "IncludeRF": radiative_forcing}
     return flights.get_factor(criteria)
 
-def cargo_ship(ghg_units="kgCO2e", ship_type="BulkCarrier", capacity=None,
+def cargo_ship_ghg(ghg_units="kgCO2e", ship_type="BulkCarrier", capacity=None,
                capacity_unit=None):
     min_capacity = get_min_capacity(ship_type, "FreightCargoShip", capacity)
     if not capacity_unit:
         capacity_unit = capacity_units[ship_type]
     if capacity_unit == capacity_units["GeneralCargo"]:
         raise Exception("For GeneralCargo you must specify a capacity unit (DWT or DWTandTEU)")
-    cargo_ship = FreightCargoShip()
+    cargo_ship_ghg = FreightCargoShip()
     criteria = {"GHGUnits": ghg_units, "ShipType": ship_type,
                 "MinCapacity": min_capacity, "CapacityUnit": capacity_unit}
-    return cargo_ship.get_factor(criteria)
+    return cargo_ship_ghg.get_factor(criteria)
 
-def hgv(ghg_units="kgCO2e", refrigerated=False, percent_laden="Average",
+def hgv_ghg(ghg_units="kgCO2e", refrigerated=False, percent_laden="Average",
         hgv_type="All", tonnage=None, unit='km'):
     if not tonnage is None:
         if hgv_type == "Articulated":
@@ -108,30 +109,30 @@ def hgv(ghg_units="kgCO2e", refrigerated=False, percent_laden="Average",
         min_weight = -1
     if hgv_type == "All":
         min_weight = -1
-    hgv = FreightHGV()
+    hgv_ghg = FreightHGV()
     criteria = {"GHGUnits": ghg_units, "Refrigerated": refrigerated,
                 "PercentLaden": percent_laden, "HGVType": hgv_type,
                 "MinWeight": min_weight, "Unit": unit}
-    return hgv.get_factor(criteria)
+    return hgv_ghg.get_factor(criteria)
 
-def rail_freight(ghg_units="kgCO2e", rail_type="FreightTrain"):
+def rail_freight_ghg(ghg_units="kgCO2e", rail_type="FreightTrain"):
     trains = FreightRail()
     criteria = {"GHGUnits": ghg_units, "RailType": rail_type}
     return trains.get_factor(criteria)
 
-def sea_tanker(ghg_units="kgCO2e", ship_type="ProductsTanker", capacity=None,
+def sea_tanker_ghg(ghg_units="kgCO2e", ship_type="ProductsTanker", capacity=None,
                capacity_unit=None):
     min_capacity = get_min_capacity(ship_type, "FreightSeaTanker", capacity)
     if ship_type in ["LNGTanker", "LPGTanker"]:
         capacity_unit = "M3"
     else:
         capacity_unit = "DWT"
-    sea_tanker = FreightSeaTanker()
+    sea_tanker_ghg = FreightSeaTanker()
     criteria = {"GHGUnits": ghg_units, "ShipType": ship_type,
                 "MinCapacity": min_capacity, "CapacityUnit": capacity_unit}
-    return sea_tanker.get_factor(criteria)
+    return sea_tanker_ghg.get_factor(criteria)
 
-def van(ghg_units="kgCO2e", van_class="Average",
+def van_ghg(ghg_units="kgCO2e", van_class="Average",
         tonnage=None, fuel="Unknown", unit="km"):
     if not tonnage is None:
         if tonnage < 1.305:
@@ -142,9 +143,9 @@ def van(ghg_units="kgCO2e", van_class="Average",
             van_class = "ClassThree"
         else:
             raise Exception("Vans must weigh less than 3.5 tonnes")
-    van = FreightVans()
+    van_ghg = FreightVans()
     criteria = {"GHGUnits": ghg_units, "Fuel": fuel, "VanClass": van_class}
-    return van.get_factor(criteria)
+    return van_ghg.get_factor(criteria)
 
 capacity_units = {"BulkCarrier": "DWT",
                   "GeneralCargo": ("DWT or DWT and 100+ TEU"),
@@ -157,7 +158,7 @@ capacity_units = {"BulkCarrier": "DWT",
 def get_min_capacity(ship_type, activity, capacity):
     if capacity is None:
         return -1
-    with lite.connect("defra_carbon.db") as con:
+    with lite.connect(os.path.join(DIR, 'db/defra_carbon.db')) as con:
         cur = con.cursor()
         cur.execute("SELECT MinCapacity FROM %s WHERE ShipType=:ShipType" % activity,
                     {'ShipType': ship_type})
@@ -184,7 +185,7 @@ class ActivityTable:
     
     @property
     def columns(self):
-        with lite.connect("defra_carbon.db") as con:
+        with lite.connect(os.path.join(DIR, 'db/defra_carbon.db')) as con:
             cur = con.cursor()    
             cur.execute("SELECT * FROM %s" % self.table_name)
             names = list(map(lambda x: x[0], cur.description))
@@ -192,7 +193,7 @@ class ActivityTable:
 
     @property
     def ghg_units(self):
-        with lite.connect("defra_carbon.db") as con:
+        with lite.connect(os.path.join(DIR, 'db/defra_carbon.db')) as con:
             cur = con.cursor()    
             cur.execute("SELECT * FROM %s" % self.table_name)
             names = list(map(lambda x: x[0], cur.description))
@@ -200,7 +201,7 @@ class ActivityTable:
 
     @property
     def options(self):
-        with lite.connect("defra_carbon.db") as con:
+        with lite.connect(os.path.join(DIR, 'db/defra_carbon.db')) as con:
             cur = con.cursor()    
             cur.execute("SELECT * FROM %s" % self.table_name)
             names = list(map(lambda x: x[0], cur.description))
@@ -208,7 +209,7 @@ class ActivityTable:
 
     def get_factor(self, criteria):
         query, error_message = self.select_from_criteria(criteria)
-        with lite.connect("defra_carbon.db") as con:
+        with lite.connect(os.path.join(DIR, 'db/defra_carbon.db')) as con:
             cur = con.cursor()
             cur.execute(query)
             row = cur.fetchone()
@@ -246,16 +247,64 @@ class ActivityTable:
         error_message = 'Error selecting from database'
         return query, error_message
 
-class FreightFlights(ActivityTable):
+class BusinessBus(ActivityTable):
     
     def __init__(self):
-        self.table_name = "FreightFlights"
+        self.table_name = "BusinessBus"
+        
+class BusinessCarByMarketSegment(ActivityTable):
+    
+    def __init__(self):
+        self.table_name = "BusinessCarsByMarketSegment"
+
+class BusinessCarBySize(ActivityTable):
+    
+    def __init__(self):
+        self.table_name = "BusinessCarsBySize"
+
+class BusinessFerries(ActivityTable):
+    
+    def __init__(self):
+        self.table_name = "BusinessFerries"
+        
+class BusinessFlights(ActivityTable):
+    
+    def __init__(self):
+        self.table_name = "BusinessFlights"
+
+class BusinessMotorbike(ActivityTable):
+    
+    def __init__(self):
+        self.table_name = "BusinessMotorbike"
+        
+class BusinessRail(ActivityTable):
+    
+    def __init__(self):
+        self.table_name = "BusinessRail"
+        
+class BusinessTaxi(ActivityTable):
+    
+    def __init__(self):
+        self.table_name = "BusinessTaxi"
+
+    def get_haul(self, origin, destination):
+        if get_country(origin) == "UK" and get_country(destination) == "UK":
+            return "Domestic"
+        elif distance.air_distance(origin, destination, 'km') < MAX_SHORT_HAUL_KM:
+            return "ShortHaul"
+        else:
+            return "LongHaul"
 
 class FreightCargoShip(ActivityTable):
     
     def __init__(self):
         self.table_name = "FreightCargoShip"
         
+class FreightFlights(ActivityTable):
+    
+    def __init__(self):
+        self.table_name = "FreightFlights"
+
 class FreightHGV(ActivityTable):
     
     def __init__(self):
@@ -275,54 +324,6 @@ class FreightVans(ActivityTable):
     
     def __init__(self):
         self.table_name = "FreightVans"
-
-class BusinessRail(ActivityTable):
-    
-    def __init__(self):
-        self.table_name = "BusinessRail"
-        
-class BusinessBus(ActivityTable):
-    
-    def __init__(self):
-        self.table_name = "BusinessBus"
-        
-class BusinessTaxi(ActivityTable):
-    
-    def __init__(self):
-        self.table_name = "BusinessTaxi"
-
-class BusinessMotorbike(ActivityTable):
-    
-    def __init__(self):
-        self.table_name = "BusinessMotorbike"
-        
-class BusinessFerries(ActivityTable):
-    
-    def __init__(self):
-        self.table_name = "BusinessFerries"
-        
-class BusinessFlights(ActivityTable):
-    
-    def __init__(self):
-        self.table_name = "BusinessFlights"
-
-    def get_haul(self, origin, destination):
-        if get_country(origin) == "UK" and get_country(destination) == "UK":
-            return "Domestic"
-        elif distance.air_distance(origin, destination, 'km') < MAX_SHORT_HAUL_KM:
-            return "ShortHaul"
-        else:
-            return "LongHaul"
-
-class BusinessCarBySize(ActivityTable):
-    
-    def __init__(self):
-        self.table_name = "BusinessCarsBySize"
-
-class BusinessCarByMarketSegment(ActivityTable):
-    
-    def __init__(self):
-        self.table_name = "BusinessCarsByMarketSegment"
 
          
 def main():

@@ -9,14 +9,14 @@ import pandas
 import pandas.io.sql as pd_lite
 
 ''' Create the stations database '''
-with lite.connect("./uk_stations.db") as con:
+with lite.connect("./db/uk_stations.db") as con:
     cur = con.cursor()    
     cur.execute("DROP TABLE IF EXISTS Stations")
-    stations = pandas.read_csv('uk_stations.csv', encoding="utf-8")
+    stations = pandas.read_csv('./tables/uk_stations.csv', encoding="utf-8")
     pd_lite.write_frame(stations, "Stations", con)
 
 ''' Create the emissions factors database '''
-with lite.connect("./defra_carbon.db") as con:
+with lite.connect("./db/defra_carbon.db") as con:
     cur = con.cursor()    
     cur.execute("DROP TABLE IF EXISTS Activities")
     
